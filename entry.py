@@ -19,7 +19,7 @@ import re
 import subprocess
 import sys
 
-ENGINE_PIN = '5.26.0'          # keep in sync with action.yml
+ENGINE_PIN = '5.27.0'          # keep in sync with action.yml
 OUR_LABEL = 'a11y-toolkit'
 SEV_ORDER = {'high': 3, 'medium': 2, 'low': 1}
 HONEST_NOTE = (

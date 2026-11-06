@@ -45,7 +45,7 @@ runs:
       with:
         python-version: '3.12'
     - name: Install a11y-toolkit (pinned release)
-      run: pip install --quiet "a11y-toolkit==5.26.0"
+      run: pip install --quiet "a11y-toolkit==5.27.0"
       shell: bash
     - name: Audit + report + issues
       id: audit
