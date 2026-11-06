@@ -1,0 +1,28 @@
+name: CI
+on:
+  push:
+  pull_request:
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python3 test_entry.py
+  dry-run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: pip install --quiet "a11y-toolkit==5.26.0"
+      - name: Audit the toolkit's own site (no issues: dry)
+        env:
+          INPUT_URLS: https://a11y.es
+          INPUT_CREATE_ISSUES: 'false'
+          INPUT_FAIL_ON: 'none'
+          INPUT_LANG: 'en'
+        run: python3 entry.py --dry-run
+      - uses: actions/upload-artifact@v4
+        with: {name: a11y-report, path: a11y-report/}
