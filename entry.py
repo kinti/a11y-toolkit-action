@@ -93,6 +93,13 @@ def build_summary(results, lang='en'):
     return '\n'.join(lines)
 
 
+def _safe(x):
+    """Page-derived strings are UNTRUSTED: a backtick inside a value breaks
+    the code span and the rest renders as markdown (tracking pixels,
+    phishing links) — flowing on into Copilot-assigned prompts."""
+    return str(x).replace('`', "'").replace('\x00', '')
+
+
 def finding_body(f, url, today):
     """Issue body: what, why, how — and the honest limit."""
     h = f.get('how', [])
@@ -107,7 +114,7 @@ def finding_body(f, url, today):
              '']
     if f.get('examples'):
         lines.append('**Examples**')
-        lines += [f'- `{x}`' for x in f['examples'][:5]]
+        lines += [f'- `{_safe(x)}`' for x in f['examples'][:5]]
     if f.get('paths'):
         lines.append('')
         lines.append('**Elements**')

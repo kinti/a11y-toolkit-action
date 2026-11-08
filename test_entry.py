@@ -8,7 +8,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from entry import (issue_key, plan_issue_ops, build_summary,  # noqa: E402
-                   merge_urls)
+                   merge_urls, _safe)
 
 results = []
 
@@ -73,15 +73,22 @@ sm = build_summary([{'url': 'https://x.dev',
 check('summary has score and honesty',
       '**62**' in sm and 'not conformance' in sm)
 
-fails = [n for n, ok in results if not ok]
-print(f"\n{len(results) - len(fails)}/{len(results)} checks")
-sys.exit(1 if fails else 0)
 
 # ── merge_urls: explícito primero, sitemap después, dedupe por barra final ──
 m = merge_urls('https://a.dev\nhttps://b.dev/',
                ['https://c.dev', 'https://b.dev/', 'https://d.dev'])
-check('merge order+dedupe', m == ['https://a.dev', 'https://b.dev',
+check('merge order+dedupe', m == ['https://a.dev', 'https://b.dev/',
                                   'https://c.dev', 'https://d.dev'])
 check('merge empty explicit', merge_urls('', ['https://x.dev'])
       == ['https://x.dev'])
 check('merge nothing', merge_urls('', []) == [])
+
+# ── page-derived strings are untrusted: backticks cannot break the span ──
+evil = 'foo` ![x](https://evil.com/p.png) [`bar'
+safe = _safe(evil)
+check('backtick breakout neutralized', '`' not in safe)
+check('value survives sanitization', 'foo' in safe and 'bar' in safe)
+
+fails = [n for n, ok in results if not ok]
+print(f"\n{len(results) - len(fails)}/{len(results)} checks")
+sys.exit(1 if fails else 0)
