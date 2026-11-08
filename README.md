@@ -38,12 +38,36 @@ reopen it. Add `wontfix` to keep an issue closed.
 
 | Input | Default | What |
 |---|---|---|
-| `urls` | — (required) | Newline-delimited list of public URLs |
+| `urls` | — | Newline-delimited list of public URLs (optional when `sitemap` is set) |
+| `sitemap` | — | sitemap.xml URL, parsed by the engine and deduped against `urls` |
 | `create-issues` | `true` | File/update issues (`false` = report only) |
 | `labels` | `a11y-toolkit` | Labels the action owns |
 | `fail-on` | `none` | Exit 1 at `medium` or `high` |
 | `lang` | `en` | `en` \| `es` findings |
 | `token` | `github.token` | Needs `issues:write` when filing |
+
+## Sitemaps
+
+```yaml
+      - uses: kinti/a11y-toolkit-action@v1
+        with:
+          sitemap: https://your.site/sitemap.xml   # deduped against urls
+          urls: |
+            https://your.site/pricing              # explicit first, always
+```
+
+The engine parses the sitemap itself (no crawler to trust); explicit
+`urls` run first and sitemap URLs join deduped after them.
+
+## Findings are untrusted page content
+
+Alt text, link text, form names — every example in a filed issue comes
+from the PAGE being audited, i.e. from content your site's owner does not
+control when you audit someone else's. This action wraps page-derived
+strings in code spans and never renders them as markdown/HTML, and the
+engine's own prose is the only free text. Treat scanner output as
+untrusted anywhere it flows (issue bodies, Copilot prompts, agents):
+their issue #292/#259 is our doctrine from day one.
 
 ## Honesty
 

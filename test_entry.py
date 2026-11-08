@@ -7,7 +7,8 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from entry import issue_key, plan_issue_ops, build_summary  # noqa: E402
+from entry import (issue_key, plan_issue_ops, build_summary,  # noqa: E402
+                   merge_urls)
 
 results = []
 
@@ -75,3 +76,12 @@ check('summary has score and honesty',
 fails = [n for n, ok in results if not ok]
 print(f"\n{len(results) - len(fails)}/{len(results)} checks")
 sys.exit(1 if fails else 0)
+
+# ── merge_urls: explícito primero, sitemap después, dedupe por barra final ──
+m = merge_urls('https://a.dev\nhttps://b.dev/',
+               ['https://c.dev', 'https://b.dev/', 'https://d.dev'])
+check('merge order+dedupe', m == ['https://a.dev', 'https://b.dev',
+                                  'https://c.dev', 'https://d.dev'])
+check('merge empty explicit', merge_urls('', ['https://x.dev'])
+      == ['https://x.dev'])
+check('merge nothing', merge_urls('', []) == [])

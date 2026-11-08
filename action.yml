@@ -9,8 +9,13 @@ branding:
   color: 'orange'
 inputs:
   urls:
-    description: 'Newline-delimited list of URLs to audit (public pages; the engine fetches server-side).'
-    required: true
+    description: 'Newline-delimited list of URLs to audit (public pages; the engine fetches server-side). Optional when sitemap is set.'
+    required: false
+    default: ''
+  sitemap:
+    description: 'URL of a sitemap.xml to audit instead of/in addition to urls (parsed by the engine; deduped against urls).'
+    required: false
+    default: ''
   token:
     description: 'Token for issue operations (needs issues:write).'
     required: false
@@ -51,6 +56,7 @@ runs:
       id: audit
       env:
         INPUT_URLS: ${{ inputs.urls }}
+        INPUT_SITEMAP: ${{ inputs.sitemap }}
         INPUT_TOKEN: ${{ inputs.token }}
         INPUT_CREATE_ISSUES: ${{ inputs.create-issues }}
         INPUT_LABELS: ${{ inputs.labels }}

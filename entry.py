@@ -119,11 +119,28 @@ def finding_body(f, url, today):
 
 # ── gh plumbing ─────────────────────────────────────────────────────────────
 
+def merge_urls(explicit_text, sitemap_urls):
+    """Explicit URLs first, sitemap URLs after — deduped, order kept."""
+    out = [u.strip() for u in (explicit_text or '').split('\n') if u.strip()]
+    seen = {u.rstrip('/') for u in out}
+    for u in (sitemap_urls or []):
+        u = u.strip()
+        if u and u.rstrip('/') not in seen:
+            seen.add(u.rstrip('/'))
+            out.append(u)
+    return out
+
+
 def gh(*args, repo):
     env = dict(os.environ)
-    return subprocess.run(
+    r = subprocess.run(
         ['gh'] + list(args) + ['-R', repo], capture_output=True, text=True,
         env=env)
+    if r.returncode != 0:
+        # su #44/#61/#127: crear el issue en silencio y fallar sin cara
+        print(f'::warning::gh {args[0]} failed: '
+              f'{(r.stderr or r.stdout).strip()[:200]}')
+    return r
 
 
 def list_our_issues(repo, labels):
@@ -143,8 +160,16 @@ def list_our_issues(repo, labels):
 # ── main ────────────────────────────────────────────────────────────────────
 
 def main():
-    urls = [u.strip() for u in os.environ.get('INPUT_URLS', '').split('\n')
-            if u.strip()]
+    urls_text = os.environ.get('INPUT_URLS', '')
+    sitemap = os.environ.get('INPUT_SITEMAP', '').strip()
+    urls = merge_urls(urls_text, [])
+    if sitemap:
+        try:
+            from a11y_toolkit.a11yaudit import _urls_sitemap
+            urls = merge_urls(urls_text, _urls_sitemap(sitemap, timeout=45))
+        except Exception as e:  # noqa: BLE001
+            print(f'::warning::sitemap fetch failed ({e}); '
+                  'continuing with explicit urls')
     repo = os.environ.get('GITHUB_REPOSITORY', '')
     create_issues = (os.environ.get('INPUT_CREATE_ISSUES', 'true').lower()
                      == 'true')
